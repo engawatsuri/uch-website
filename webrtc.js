@@ -4,7 +4,7 @@ let messages = [];
 
 window.createRoom = async function () {
     return new Promise(resolve => {
-        const peer = new Peer();
+        peer = new Peer();
         peer.on("open", id => {
             resolve(id);
         });
