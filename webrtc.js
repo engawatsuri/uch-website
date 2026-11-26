@@ -13,7 +13,7 @@ function setupConnection() {
     conn.on("close", () => {
         console.log("Disconnected");
     });
-}
+};
 
 miniquad_add_plugin({
     register_plugin: function (importObject) {
@@ -35,7 +35,9 @@ miniquad_add_plugin({
             peer = new Peer();
             peer.on("open", () => {
                 conn = peer.connect(roomId);
-                setupConnection();
+                conn.on("open", () => {
+                    setupConnection();
+                });
             });
         };
 
@@ -54,7 +56,7 @@ miniquad_add_plugin({
             }
             buf = messages.shift();
             return buf.len();
-        }
+        };
 
         importObject.env.js_poll = function(ptr) {
             const bytes = new TextEncoder().encode(buf);
@@ -67,18 +69,18 @@ miniquad_add_plugin({
         };
 
         importObject.env.js_get_room_id_len = function() {
-            if(!peerId) {
+            if(!roomId) {
                 return 0;
             }
-            return peerId.len();
-        }
+            return roomId.len();
+        };
 
         importObject.env.js_get_room_id = function(ptr) {
-            const bytes = new TextEncoder().encode(peerId);
+            const bytes = new TextEncoder().encode(roomId);
             const memory = new Uint8Array(wasm_memory.buffer);
             memory.set(bytes, ptr);
-        }
-    }
+        };
+    },
 
     on_init: function() {
         wasm_memory = Module.wasm_memory;
