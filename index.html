@@ -17,16 +17,104 @@
             z-index: 0;
         }
     </style>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
 
 <body>
     <canvas id="glcanvas" tabindex='1'></canvas>
     <!-- Minified and statically hosted version of https://github.com/not-fl3/macroquad/blob/master/js/mq_js_bundle.js -->
     <script src="https://not-fl3.github.io/miniquad-samples/mq_js_bundle.js"></script>
-    <script>console.log("mq_js_boudle loaded");</script>
-    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-    <script src="https://engawatsuri.github.io/uch-website/webrtc.js"></script>
-    <script>load("./ultimate-chicken-horse.wasm");</script> <!-- Your compiled wasm file -->
+    <script>
+        let wasm_memory = null;
+        let peer = null;
+        let conn = null;
+        let messages = [];
+        let roomId = null;
+        let buf = null;
+        
+        function setupConnection() {
+            conn.on("data", data => {
+                messages.push(data);
+            });
+        
+            conn.on("close", () => {
+                console.log("Disconnected");
+            });
+        }
+        
+        miniquad_add_plugin({
+            register_plugin: function (importObject) {
+                importObject.env.js_host = function () {
+                    peer = new Peer();
+                    peer.on("open", id => {
+                        roomId = id;
+                    });
+        
+                    peer.on("connection", connection => {
+                        conn = connection;
+                        setupConnection();
+                    });
+                };
+        
+                importObject.env.js_guest = function(ptr, len) {
+                    const bytes = new Uint8Array(wasm_memory.buffer, ptr, len);
+                    roomId = new TextDecoder().decode(bytes);
+                    peer = new Peer();
+                    peer.on("open", () => {
+                        conn = peer.connect(roomId);
+                        conn.on("open", () => {
+                            setupConnection();
+                        });
+                    });
+                };
+        
+                importObject.env.js_send = function(ptr, len) {
+                    if(!conn || !conn.open) {
+                        return;
+                    }
+                    const bytes = new Uint8Array(wasm_memory.buffer, ptr, len);
+                    let packet = new TextDecoder().decode(bytes);
+                    conn.send(packet);
+                };
+        
+                importObject.env.js_poll_len = function() {
+                    if(messages.length === 0) {
+                        return 0;
+                    }
+                    buf = messages.shift();
+                    return buf.length;
+                };
+        
+                importObject.env.js_poll = function(ptr) {
+                    const bytes = new TextEncoder().encode(buf);
+                    const memory = new Uint8Array(wasm_memory.buffer);
+                    memory.set(bytes, ptr);
+                };
+        
+                importObject.env.js_is_connected = function() {
+                    return (conn && conn.open);
+                };
+        
+                importObject.env.js_get_room_id_len = function() {
+                    if(!roomId) {
+                        return 0;
+                    }
+                    return roomId.length;
+                };
+        
+                importObject.env.js_get_room_id = function(ptr) {
+                    const bytes = new TextEncoder().encode(roomId);
+                    const memory = new Uint8Array(wasm_memory.buffer);
+                    memory.set(bytes, ptr);
+                };
+            },
+        
+            on_init: function() {
+                wasm_memory = Module.wasm_memory;
+            }
+        });
+    </script>
+    <script>load("ultimate-chicken-horse.wasm");</script> <!-- Your compiled wasm file -->
 </body>
 
 </html>
