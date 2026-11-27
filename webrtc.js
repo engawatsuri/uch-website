@@ -57,7 +57,7 @@ miniquad_add_plugin({
                 return 0;
             }
             buf = messages.shift();
-            return buf.len();
+            return buf.length;
         };
 
         importObject.env.js_poll = function(ptr) {
@@ -74,7 +74,7 @@ miniquad_add_plugin({
             if(!roomId) {
                 return 0;
             }
-            return roomId.len();
+            return roomId.length;
         };
 
         importObject.env.js_get_room_id = function(ptr) {
