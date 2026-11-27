@@ -5,6 +5,8 @@ let messages = [];
 let roomId = null;
 let buf = null;
 
+console.log("webrtc loaded");
+
 function setupConnection() {
     conn.on("data", data => {
         messages.push(data);
