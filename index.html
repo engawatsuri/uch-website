@@ -32,6 +32,8 @@
         let roomId = null;
         let buf = null;
         
+        console.log("before miniquad_add_plugin");
+        
         function setupConnection() {
             conn.on("data", data => {
                 messages.push(data);
@@ -113,6 +115,7 @@
                 wasm_memory = Module.wasm_memory;
             }
         });
+        console.log("after miniquad_add_plugin");
     </script>
     <script>load("ultimate-chicken-horse.wasm");</script> <!-- Your compiled wasm file -->
 </body>
