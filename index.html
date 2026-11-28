@@ -24,21 +24,20 @@
     <canvas id="glcanvas" tabindex='1'></canvas>
     <!-- Minified and statically hosted version of https://github.com/not-fl3/macroquad/blob/master/js/mq_js_bundle.js -->
     <script src="https://not-fl3.github.io/miniquad-samples/mq_js_bundle.js"></script>
-    <!--
-        let wasm_memory = null;
+    <script>
         let peer = null;
         let conn = null;
         let messages = [];
         let roomId = null;
         let buf = null;
-        
+
         console.log("before miniquad_add_plugin");
-        
+
         function setupConnection() {
             conn.on("data", data => {
                 messages.push(data);
             });
-        
+
             conn.on("close", () => {
                 console.log("Disconnected");
             });
@@ -109,17 +108,11 @@
                     const memory = new Uint8Array(wasm_memory.buffer);
                     memory.set(bytes, ptr);
                 };
-            },
-        
-            on_init: function() {
-                wasm_memory = Module.wasm_memory;
             }
         });
         console.log("after miniquad_add_plugin");
-    -->
-    <script>
         alert(typeof miniquad_add_plugin);
-        alert(typeof Module);
+        alert(typeof wasm_memory);
         load("ultimate-chicken-horse.wasm");
     </script> <!-- Your compiled wasm file -->
 </body>
